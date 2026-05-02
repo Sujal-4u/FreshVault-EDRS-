@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Fresh Vault — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+/* =====================================================
+   RESET + VARIABLES
+===================================================== */
+*,*::before,
+*::after{
+  box-sizing:border-box;
+  margin:0;
+  padding:0
+}
+html{scroll-behavior:smooth}
+:root{
+  --sb-w: 255px;
+  --bg:   #f1f3f8;
+  --card: #ffffff;
+  --bdr:  #e6e9f0;
+  --dark: #1a1a2e;
+  --mid:  #3d3d5c;
+  --soft: #6b7280;
+  --muted:#9ca3af;
+  --blue1:#6b8cff; --blue2:#5270f0;
+  --ora1: #f9b56d; --ora2: #f49b47;
+  --red1: #e57373; --red2: #d95353;
+  --grn1: #62c98d; --grn2: #49b87a;
+  --teal: #14b8a6; --purple:#7c3aed;
+  --r:    14px; --rlg: 22px;
+  --sh:   0 4px 24px rgba(0,0,0,0.07);
+  --shh:  0 12px 40px rgba(0,0,0,0.12);
+  --tr:   all .24s cubic-bezier(.4,0,.2,1);
+  --fh:   'Syne',sans-serif;
+  --fb:   'Nunito',sans-serif;
+}
+
+body{
+  font-family:var(--fb);
+  background:var(--bg);
+  color:var(--dark);
+  min-height:100vh;
+  overflow-x:hidden
+}
+/* =====================================================
+   LAYOUT
+===================================================== */
+.app
+{
+  display:flex;
+  min-height:100vh
+}
+
+/* =====================================================
+   SIDEBAR
+===================================================== */
+.sidebar{
+  width:var(--sb-w);
+  background:linear-gradient(170deg,#0f1035 0%,#1a0f4e 50%,#270d5e 100%);
+  display:flex;flex-direction:column;
+  position:fixed;top:0;left:0;bottom:0;
+  z-index:300;
+  transition:transform .32s cubic-bezier(.4,0,.2,1);
+  overflow:hidden;
+}
+/* subtle shimmer layer */
+.sidebar::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 200px 200px at 20% 10%,rgba(124,58,237,.14),transparent),
+             radial-gradient(ellipse 160px 160px at 80% 80%,rgba(20,184,166,.08),transparent);
+  pointer-events:none;
+}
+
+.sb-logo{
+  display:flex;align-items:center;gap:10px;
+  padding:24px 20px 20px;
+  border-bottom:1px solid rgba(255,255,255,.07);
+  text-decoration:none;flex-shrink:0;position:relative;z-index:1;
+}
+.sb-logo-icon{
+  width:38px;height:38px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--teal),#10b981);
+  border-radius:11px;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 14px rgba(20,184,166,.4);
+}
+.sb-logo-icon svg{width:20px;height:20px;fill:#fff}
+.sb-logo-name{font-family:var(--fh);font-size:1.12rem;color:#fff}
+.sb-logo-name span{color:#5eead4}
+
+.sb-nav{flex:1;overflow-y:auto;padding:10px 10px 6px;position:relative;z-index:1}
+.sb-nav::-webkit-scrollbar{width:0}
+
+.sb-section{
+  font-size:.6rem;font-weight:800;letter-spacing:.18em;text-transform:uppercase;
+  color:rgba(255,255,255,.22);padding:16px 12px 5px;
+}
+
+.sb-item{
+  display:flex;align-items:center;gap:10px;
+  width:100%;padding:10px 12px;border-radius:11px;
+  color:rgba(255,255,255,.58);text-decoration:none;
+  font-size:.86rem;font-weight:600;
+  border:none;background:transparent;text-align:left;
+  transition:var(--tr);cursor:pointer;margin-bottom:2px;position:relative;
+}
+.sb-item:hover{background:rgba(255,255,255,.08);color:#fff}
+.sb-item.active{
+  background:linear-gradient(120deg,rgba(124,58,237,.6),rgba(99,102,241,.4));
+  color:#fff;box-shadow:0 4px 16px rgba(124,58,237,.25);
+}
+.sb-item.active::before{
+  content:'';position:absolute;left:0;top:25%;bottom:25%;
+  width:3px;background:#a78bfa;border-radius:0 3px 3px 0;
+}
+.sb-ico{
+  width:30px;height:30px;border-radius:8px;flex-shrink:0;
+  background:rgba(255,255,255,.07);
+  display:flex;align-items:center;justify-content:center;font-size:.9rem;
+  transition:var(--tr);
+}
+.sb-item.active .sb-ico,.sb-item:hover .sb-ico{background:rgba(255,255,255,.15)}
+.sb-badge{
+  margin-left:auto;background:#e57373;color:#fff;
+  font-size:.6rem;font-weight:800;padding:2px 7px;border-radius:20px;
+}
+.sb-badge.ora{background:var(--ora2)}
+
+.sb-bottom{padding:0 10px 10px;position:relative;z-index:1}
+.sb-divider{height:1px;background:rgba(255,255,255,.07);margin-bottom:8px}
+.sb-user{
+  display:flex;align-items:center;gap:9px;
+  padding:10px 11px;border-radius:11px;
+  background:rgba(255,255,255,.07);cursor:pointer;transition:var(--tr);
+}
+.sb-user:hover{background:rgba(255,255,255,.12)}
+.sb-av{
+  width:34px;height:34px;border-radius:9px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--teal),var(--purple));
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-weight:800;font-size:.8rem;
+}
+.sb-uname{font-size:.8rem;font-weight:700;color:#fff}
+.sb-urole{font-size:.67rem;color:rgba(255,255,255,.36)}
+
+/* =====================================================
+   MAIN
+===================================================== */
+.main{margin-left:var(--sb-w);flex:1;display:flex;flex-direction:column;transition:margin-left .32s}
+
+/* =====================================================
+   TOPBAR
+===================================================== */
+.topbar{
+  background:var(--card);border-bottom:1px solid var(--bdr);
+  padding:0 28px;height:66px;
+  display:flex;align-items:center;gap:16px;
+  position:sticky;top:0;z-index:200;
+  box-shadow:0 1px 12px rgba(0,0,0,.05);
+}
+.topbar-title h1{font-family:var(--fh);font-size:1.18rem;color:var(--dark);line-height:1}
+.topbar-title p{font-size:.7rem;color:var(--muted);margin-top:2px}
+.tb-sep{width:1px;height:24px;background:var(--bdr);flex-shrink:0}
+.tb-search{flex:1;max-width:340px;position:relative}
+.tb-search input{
+  width:100%;padding:8px 14px 8px 36px;
+  border:1.5px solid var(--bdr);border-radius:50px;
+  font-family:var(--fb);font-size:.83rem;color:var(--dark);
+  background:var(--bg);outline:none;transition:var(--tr);
+}
+.tb-search input:focus{border-color:var(--blue1);background:#fff;box-shadow:0 0 0 3px rgba(107,140,255,.1)}
+.tb-search input::placeholder{color:var(--muted)}
+.tb-search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.85rem;pointer-events:none}
+.tb-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.tb-icon{
+  width:37px;height:37px;border-radius:10px;
+  border:1.5px solid var(--bdr);background:var(--card);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:var(--tr);position:relative;color:var(--soft);font-size:.95rem;
+}
+.tb-icon:hover{background:var(--bg);border-color:var(--blue1);color:var(--blue1)}
+.nb-dot{position:absolute;top:6px;right:6px;width:6px;height:6px;background:#e57373;border-radius:50%;border:1.5px solid #fff}
+.tb-profile{
+  display:flex;align-items:center;gap:8px;padding:4px 11px 4px 4px;
+  border-radius:50px;border:1.5px solid var(--bdr);cursor:pointer;transition:var(--tr);
+}
+.tb-profile:hover{border-color:var(--blue1);background:rgba(107,140,255,.04)}
+.tb-pav{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--purple));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:.72rem}
+.tb-pname{font-size:.8rem;font-weight:700;color:var(--dark)}
+.hamburger{display:none;flex-direction:column;gap:4px;cursor:pointer;padding:3px;border:none;background:none}
+.hamburger span{display:block;width:20px;height:2px;background:var(--dark);border-radius:2px;transition:var(--tr)}
+
+/* =====================================================
+   CONTENT
+===================================================== */
+.content{padding:24px 28px 40px;flex:1}
+
+/* =====================================================
+   STAT CARDS
+===================================================== */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.sc{
+  border-radius:var(--rlg);padding:18px 20px;color:#fff;
+  position:relative;overflow:hidden;cursor:default;
+  transition:var(--tr);
+  animation:fadeUp .5s ease both;
+}
+.sc:hover{transform:translateY(-4px);box-shadow:var(--shh)}
+.sc:nth-child(1){background:linear-gradient(135deg,var(--blue1),var(--blue2));animation-delay:.05s}
+.sc:nth-child(2){background:linear-gradient(135deg,var(--ora1),var(--ora2));animation-delay:.1s}
+.sc:nth-child(3){background:linear-gradient(135deg,var(--red1),var(--red2));animation-delay:.15s}
+.sc:nth-child(4){background:linear-gradient(135deg,var(--grn1),var(--grn2));animation-delay:.2s}
+.sc::before{content:'';position:absolute;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,.1);top:-28px;right:-18px}
+.sc::after{content:'';position:absolute;width:58px;height:58px;border-radius:50%;background:rgba(255,255,255,.07);bottom:-12px;right:24px}
+.sc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.sc-icon{width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:1.25rem;backdrop-filter:blur(4px)}
+.sc-sub{font-size:.66rem;font-weight:700;background:rgba(255,255,255,.2);padding:2px 8px;border-radius:20px}
+.sc-val{font-family:var(--fh);font-size:2.2rem;font-weight:800;line-height:1;margin-bottom:3px;position:relative;z-index:1}
+.sc-lbl{font-size:.76rem;font-weight:600;opacity:.9;position:relative;z-index:1}
+
+/* =====================================================
+   GRID
+===================================================== */
+.dash-grid{display:grid;grid-template-columns:1fr 320px;gap:20px;align-items:start}
+
+/* =====================================================
+   CARD BASE
+===================================================== */
+.card{background:var(--card);border-radius:var(--rlg);box-shadow:var(--sh);border:1px solid var(--bdr);overflow:hidden;animation:fadeUp .5s ease both}
+.ch{display:flex;align-items:center;justify-content:space-between;padding:20px 20px 0;margin-bottom:14px}
+.ct{font-family:var(--fh);font-size:.95rem;color:var(--dark)}
+.ca{font-size:.75rem;font-weight:700;color:var(--blue1);cursor:pointer;transition:opacity .2s}
+.ca:hover{opacity:.65}
+
+/* =====================================================
+   FILTER TABS
+===================================================== */
+.ftabs{display:flex;gap:5px;padding:0 20px;margin-bottom:12px;flex-wrap:wrap}
+.ftab{
+  padding:5px 13px;border-radius:50px;border:1.5px solid var(--bdr);
+  background:transparent;font-family:var(--fb);font-size:.74rem;font-weight:700;
+  color:var(--soft);cursor:pointer;transition:var(--tr);
+}
+.ftab:hover{border-color:var(--blue1);color:var(--blue1)}
+.ftab.active{background:var(--blue1);border-color:var(--blue1);color:#fff;box-shadow:0 3px 10px rgba(107,140,255,.25)}
+
+/* table search */
+.tsw{padding:0 20px 10px}
+.ts{position:relative}
+.ts input{width:100%;padding:8px 12px 8px 32px;border:1.5px solid var(--bdr);border-radius:9px;font-family:var(--fb);font-size:.81rem;color:var(--dark);background:var(--bg);outline:none;transition:var(--tr)}
+.ts input:focus{border-color:var(--blue1);background:#fff}
+.ts input::placeholder{color:var(--muted)}
+.ts-ico{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.82rem;pointer-events:none}
+
+/* table */
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+thead th{padding:8px 13px;font-size:.66rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);background:#f7f8fc;text-align:left;white-space:nowrap}
+thead th:first-child{padding-left:20px;border-radius:8px 0 0 8px}
+thead th:last-child{padding-right:20px;border-radius:0 8px 8px 0}
+tbody tr{border-bottom:1px solid #f2f3f6;transition:var(--tr);cursor:default}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:#f6f8ff}
+tbody td{padding:11px 13px;font-size:.83rem;color:var(--mid);vertical-align:middle}
+tbody td:first-child{padding-left:20px}
+tbody td:last-child{padding-right:20px}
+.pc{display:flex;align-items:center;gap:9px}
+.pe{font-size:1.2rem}
+.pn{font-weight:700;color:var(--dark);font-size:.84rem}
+.ps{font-size:.68rem;color:var(--muted)}
+.cp{padding:3px 9px;border-radius:20px;font-size:.68rem;font-weight:700}
+.cd{background:#dbeafe;color:#1e40af}
+.cf{background:#fef9c3;color:#92400e}
+.ch2{background:#fce7f3;color:#9d174d}
+.cb{background:#ede9fe;color:#5b21b6}
+.cg{background:#dcfce7;color:#166534}
+.co{background:#f3f4f6;color:#374151}
+.sp{padding:3px 10px;border-radius:20px;font-size:.68rem;font-weight:800;display:inline-block}
+.sfr{background:#d1fae5;color:#065f46}
+.sso{background:#fef3c7;color:#92400e}
+.sex{background:#fee2e2;color:#991b1b}
+.dsafe{color:#10b981;font-weight:700;font-size:.82rem}
+.dsoon{color:#f59e0b;font-weight:700;font-size:.82rem}
+.dgone{color:#ef4444;font-weight:700;font-size:.82rem}
+.del-btn{cursor:pointer;color:#d1d5db;font-size:.95rem;transition:var(--tr);background:none;border:none;padding:4px}
+.del-btn:hover{color:#ef4444;transform:scale(1.15)}
+
+/* empty state */
+.empty{padding:52px 20px;text-align:center;display:none}
+.empty.show{display:block}
+.empty-ico{font-size:2.8rem;margin-bottom:11px;display:block}
+.empty-t{font-family:var(--fh);font-size:1rem;color:var(--mid);margin-bottom:5px}
+.empty-s{font-size:.82rem;color:var(--muted);margin-bottom:20px;line-height:1.6}
+.btn-first{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:10px 22px;background:linear-gradient(135deg,var(--blue1),var(--blue2));
+  color:#fff;border:none;border-radius:50px;
+  font-family:var(--fb);font-size:.82rem;font-weight:700;
+  cursor:pointer;transition:var(--tr);box-shadow:0 5px 16px rgba(107,140,255,.3);
+}
+.btn-first:hover{transform:translateY(-2px);box-shadow:0 9px 22px rgba(107,140,255,.38)}
+
+/* =====================================================
+   RIGHT COLUMN
+===================================================== */
+.rcol{display:flex;flex-direction:column;gap:18px}
+
+/* upcoming expiry */
+.elist{padding:0 16px 16px}
+.ei{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:11px;margin-bottom:6px;transition:var(--tr);cursor:default}
+.ei:hover{transform:translateX(3px)}
+.ei:last-child{margin-bottom:0}
+.ei-urg{background:#fff5f5;border-left:3px solid #ef4444}
+.ei-soo{background:#fffbeb;border-left:3px solid #f59e0b}
+.ei-ok{background:#f0fdf4;border-left:3px solid #10b981}
+.ei-ico{font-size:1.25rem;flex-shrink:0}
+.ei-inf{flex:1}
+.ei-name{font-size:.83rem;font-weight:700;color:var(--dark)}
+.ei-warn{font-size:.69rem;color:var(--soft)}
+.ei-date{font-size:.67rem;font-weight:700}
+.ei-urg .ei-date{color:#ef4444}
+.ei-soo .ei-date{color:#f59e0b}
+.ei-ok  .ei-date{color:#10b981}
+.rnil{padding:14px 16px;text-align:center;color:var(--muted);font-size:.82rem;line-height:1.6}
+
+/* notifications */
+.nlist{padding:0 16px 16px;display:flex;flex-direction:column;gap:6px}
+.ni{display:flex;align-items:flex-start;gap:9px;padding:9px 11px;border-radius:11px;background:var(--bg);transition:var(--tr)}
+.ni:hover{background:#eef1ff}
+.nid{width:30px;height:30px;flex-shrink:0;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.9rem;margin-top:1px}
+.nred{background:#fee2e2}.nora{background:#fff3e0}.ngrn{background:#d1fae5}.nblu{background:#dbeafe}
+.ni strong{display:block;font-size:.8rem;color:var(--dark);font-weight:700;line-height:1.3}
+.ni span{font-size:.7rem;color:var(--muted)}
+
+/* add product CTA card */
+.apc{
+  background:linear-gradient(150deg,#0f1035,#1a0f4e,#270d5e);
+  border:none!important;cursor:pointer;
+  padding:24px 20px;text-align:center;
+  transition:var(--tr);position:relative;overflow:hidden;
+}
+.apc:hover{transform:translateY(-4px);box-shadow:0 18px 44px rgba(124,58,237,.3)}
+.apc::before{content:'';position:absolute;width:140px;height:140px;border-radius:50%;background:radial-gradient(circle,rgba(124,58,237,.2),transparent 70%);top:-40px;right:-30px}
+.apc-ico{width:50px;height:50px;background:linear-gradient(135deg,var(--teal),var(--purple));border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin:0 auto 12px;box-shadow:0 6px 18px rgba(124,58,237,.28);position:relative;z-index:1}
+.apc-t{font-family:var(--fh);font-size:.93rem;color:#fff;margin-bottom:5px;position:relative;z-index:1}
+.apc-s{font-size:.73rem;color:rgba(255,255,255,.42);margin-bottom:16px;position:relative;z-index:1}
+.btn-apc{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:10px 24px;background:linear-gradient(135deg,var(--teal),#10b981);
+  color:#fff;border:none;border-radius:50px;
+  font-family:var(--fb);font-size:.84rem;font-weight:800;
+  cursor:pointer;transition:var(--tr);box-shadow:0 5px 16px rgba(20,184,166,.35);
+  position:relative;z-index:1;
+}
+.btn-apc:hover{transform:scale(1.05);box-shadow:0 9px 22px rgba(20,184,166,.45)}
+
+/* =====================================================
+   ANALYTICS
+===================================================== */
+.arow{margin-top:20px;display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.chart-body{padding:0 20px 20px;position:relative;height:220px}
+.leg{display:flex;gap:12px;flex-wrap:wrap;padding:0 20px 16px}
+.li{display:flex;align-items:center;gap:5px;font-size:.74rem;color:var(--soft);font-weight:600}
+.ld{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* =====================================================
+   MODAL
+===================================================== */
+.overlay{
+  position:fixed;inset:0;
+  background:rgba(10,12,40,.6);backdrop-filter:blur(7px);
+  z-index:1000;display:none;align-items:center;justify-content:center;padding:20px;
+}
+.overlay.open{display:flex;animation:oIn .25s ease both}
+@keyframes oIn{from{opacity:0}to{opacity:1}}
+
+.modal{
+  background:var(--card);border-radius:24px;
+  box-shadow:0 40px 90px rgba(0,0,0,.22);
+  width:100%;max-width:490px;max-height:90vh;overflow-y:auto;
+  animation:mIn .36s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes mIn{from{opacity:0;transform:scale(.88) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal::-webkit-scrollbar{width:0}
+.mhead{padding:24px 24px 0;display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px}
+.mt{font-family:var(--fh);font-size:1.2rem;color:var(--dark)}
+.ms2{font-size:.78rem;color:var(--muted);margin-top:3px}
+.mcls{width:32px;height:32px;border-radius:9px;border:1.5px solid var(--bdr);background:var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.9rem;color:var(--soft);transition:var(--tr);flex-shrink:0}
+.mcls:hover{background:#fee2e2;border-color:#fecaca;color:#ef4444}
+.mbody{padding:0 24px 24px}
+.m2{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.mg{margin-bottom:14px}
+.ml2{display:block;font-size:.68rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--mid);margin-bottom:5px}
+.mi,.msel,.mta{width:100%;padding:10px 12px;border:1.5px solid var(--bdr);border-radius:10px;font-family:var(--fb);font-size:.85rem;color:var(--dark);background:var(--bg);outline:none;transition:var(--tr)}
+.mi:focus,.msel:focus,.mta:focus{border-color:var(--blue1);background:#fff;box-shadow:0 0 0 3px rgba(107,140,255,.09)}
+.mta{resize:vertical;min-height:70px}
+.msel{appearance:none;cursor:pointer}
+.err{border-color:#ef4444!important}
+.mfoot{display:flex;gap:10px;padding-top:4px}
+.btn-save{flex:1;padding:12px;background:linear-gradient(135deg,var(--blue1),var(--blue2));color:#fff;border:none;border-radius:10px;font-family:var(--fb);font-size:.88rem;font-weight:800;cursor:pointer;transition:var(--tr);box-shadow:0 5px 16px rgba(107,140,255,.26)}
+.btn-save:hover{transform:translateY(-2px);box-shadow:0 9px 22px rgba(107,140,255,.36)}
+.btn-cancel{padding:12px 18px;background:var(--bg);color:var(--soft);border:1.5px solid var(--bdr);border-radius:10px;font-family:var(--fb);font-size:.88rem;font-weight:700;cursor:pointer;transition:var(--tr)}
+.btn-cancel:hover{background:#f0f0f0}
+
+/* error text */
+.errt{font-size:.72rem;color:#ef4444;margin-top:4px;display:none}
+.errt.show{display:block}
+
+/* success toast */
+.toast{
+  position:fixed;bottom:28px;right:28px;
+  background:var(--dark);color:#fff;
+  padding:12px 20px;border-radius:12px;
+  font-size:.84rem;font-weight:700;
+  box-shadow:0 8px 30px rgba(0,0,0,.18);
+  display:none;align-items:center;gap:8px;
+  z-index:2000;
+  animation:toastIn .35s cubic-bezier(.34,1.56,.64,1) both;
+}
+.toast.show{display:flex}
+@keyframes toastIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+/* mobile overlay */
+.sb-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200}
+
+/* =====================================================
+   ANIMATIONS
+===================================================== */
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes countUp{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:scale(1)}}
+.count-anim{animation:countUp .35s cubic-bezier(.34,1.56,.64,1) both}
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+@media(max-width:1160px){.stats-row{grid-template-columns:repeat(2,1fr)}.arow{grid-template-columns:1fr}}
+@media(max-width:980px){.dash-grid{grid-template-columns:1fr}.rcol{display:grid;grid-template-columns:1fr 1fr;gap:18px}}
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}
+  .sb-ov.show{display:block}
+  .main{margin-left:0}
+  .topbar{padding:0 16px}
+  .content{padding:16px 14px 32px}
+  .hamburger{display:flex}
+  .tb-sep{display:none}
+  .tb-search{max-width:190px}
+  .stats-row{grid-template-columns:repeat(2,1fr);gap:12px}
+  .rcol{grid-template-columns:1fr}
+  .m2{grid-template-columns:1fr}
+}
+@media(max-width:460px){
+  .sc-val{font-size:1.7rem}.tb-pname{display:none}
+  .ftab{padding:4px 10px;font-size:.7rem}
+}
+</style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div class="toast" id="toast"><span id="toast-ico">✅</span><span id="toast-msg"></span></div>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay" onclick="closeOverlayClick(event)">
+  <div class="modal">
+    <div class="mhead">
+      <div>
+        <div class="mt">Add New Product</div>
+        <div class="ms2">Fill in details to start tracking expiry</div>
+      </div>
+      <button class="mcls" onclick="closeModal()">✕</button>
+    </div>
+    <div class="mbody">
+
+      <div class="mg">
+        <label class="ml2" for="f-name">Product Name *</label>
+        <input class="mi" type="text" id="f-name" placeholder="e.g. Amul Full Cream Milk" autocomplete="off"/>
+        <div class="errt" id="e-name">Please enter the product name.</div>
+      </div>
+
+      <div class="m2">
+        <div class="mg">
+          <label class="ml2" for="f-cat">Category *</label>
+          <select class="msel" id="f-cat">
+            <option value="">— Select —</option>
+            <option value="Dairy">🥛 Dairy</option>
+            <option value="Groceries">🛒 Fruits</option>
+            <option value="Bakery">🍞 Bakery</option>
+            <option value="Medicines">💊 Medicines</option>
+            <option value="Beauty">💄 Beauty &amp; Care</option>
+            <option value="Beverages">🧃 Beverages</option>
+            <option value="Frozen">🧊 Vegetables</option>
+            <option value="Other">📦 Other</option>
+          </select>
+          <div class="errt" id="e-cat">Please select a category.</div>
+        </div>
+        <div class="mg">
+          <label class="ml2" for="f-qty">Quantity</label>
+          <input class="mi" type="number" id="f-qty" placeholder="1" min="1" value="1"/>
+        </div>
+      </div>
+
+      <div class="m2">
+        <div class="mg">
+          <label class="ml2" for="f-exp">Expiry Date *</label>
+          <input class="mi" type="date" id="f-exp"/>
+          <div class="errt" id="e-exp">Please select an expiry date.</div>
+        </div>
+        <div class="mg">
+          <label class="ml2" for="f-brand">Brand (optional)</label>
+          <input class="mi" type="text" id="f-brand" placeholder="e.g. Amul"/>
+        </div>
+      </div>
+
+      <div class="mg">
+        <label class="ml2" for="f-notes">Notes (optional)</label>
+        <textarea class="mta" id="f-notes" placeholder="Any extra info about this product…"></textarea>
+      </div>
+
+      <div class="mfoot">
+        <button class="btn-save" onclick="saveProduct()">💾 Save Product</button>
+        <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app">
+  <div class="sb-ov" id="sb-ov" onclick="closeSB()"></div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <a href="index.html" class="sb-logo">
+      <div class="sb-logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M17 8C8 10 5.9 16.17 3.82 19.93L5.71 21l1-2c.19.07.39.14.61.21C9.77 20.1 14.87 20.6 19 17c0 0 0-9-2-9zm-3.46 7.34c-.95.69-2.07 1.09-3.19 1.3L9 18l1.34-2.68a5.34 5.34 0 002.85-1.46 5.34 5.34 0 001.46-2.85L17 9.66l-1.7 2.35c-.21 1.12-.61 2.24-1.3 3.19z"/></svg>
+      </div>
+      <span class="sb-logo-name">Fresh<span>Vault</span></span>
+    </a>
+
+    <div class="sb-nav">
+      <div class="sb-section">Inventory Hub</div>
+      <button class="sb-item active" onclick="setNav(this)"><span class="sb-ico">🏠</span>Dashboard</button>
+      <button class="sb-item" onclick="setNav(this)"><span class="sb-ico">📦</span>All Products<span class="sb-badge" id="sb-tot">0</span></button>
+      <button class="sb-item" onclick="setNav(this)"><span class="sb-ico">🚫</span>Expired<span class="sb-badge" id="sb-exp">0</span></button>
+      <div class="sb-section" style="margin-top:8px">Tools</div>
+      <button class="sb-item" onclick="setNav(this)"><span class="sb-ico">📊</span>Analytics</button>
+      <button class="sb-item" onclick="setNav(this)"><span class="sb-ico">🔔</span>Notifications<span class="sb-badge ora" id="sb-notif">0</span></button>
+      <button class="sb-item" onclick="setNav(this)"><span class="sb-ico">🗂️</span>Categories</button>
+    </div>
+
+    <div class="sb-bottom">
+      <button class="sb-item" onclick="setNav(this)" style="margin-bottom:8px"><span class="sb-ico">⚙️</span>Settings</button>
+      <div class="sb-divider"></div>
+     <div class="sb-user">
+  <div class="sb-av" id="sb-avatar">A</div>
+  <div>
+    <div class="sb-uname" id="sb-username">User Name</div>
+    <div class="sb-urole">Free Plan</div>
+  </div>
+  <span style="margin-left:auto;color:rgba(255,255,255,.28);font-size:.8rem">›</span>
+</div>(
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <button class="hamburger" onclick="toggleSB()"><span></span><span></span><span></span></button>
+      <div class="topbar-title">
+        <h1>Dashboard</h1>
+        <p id="topdate"></p>
+      </div>
+      <div class="tb-sep"></div>
+      <div class="tb-search">
+        <span class="tb-search-icon">🔍</span>
+        <input type="text" id="gsearch" placeholder="Search products…" oninput="renderTable()"/>
+      </div>
+      <div class="tb-right">
+        <div class="tb-icon" title="Notifications">🔔<span class="nb-dot" id="nb-dot" style="display:none"></span></div>
+        <div class="tb-profile">
+  <div class="tb-pav" id="tb-avatar">A</div>
+  <span class="tb-pname" id="tb-name">User</span>
+</div>
+      </div>
+    </header>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <!-- STAT CARDS -->
+      <div class="stats-row">
+        <div class="sc">
+          <div class="sc-top"><div class="sc-icon">📦</div><span class="sc-sub">all items</span></div>
+          <div class="sc-val" id="sv-total">0</div>
+          <div class="sc-lbl">Total Products</div>
+        </div>
+        <div class="sc">
+          <div class="sc-top"><div class="sc-icon">⏳</div><span class="sc-sub">within 7 days</span></div>
+          <div class="sc-val" id="sv-soon">0</div>
+          <div class="sc-lbl">Expiring Soon</div>
+        </div>
+        <div class="sc">
+          <div class="sc-top"><div class="sc-icon">🚫</div><span class="sc-sub">action needed</span></div>
+          <div class="sc-val" id="sv-expired">0</div>
+          <div class="sc-lbl">Expired Products</div>
+        </div>
+        <div class="sc">
+          <div class="sc-top"><div class="sc-icon">✅</div><span class="sc-sub">&gt;7 days safe</span></div>
+          <div class="sc-val" id="sv-safe">0</div>
+          <div class="sc-lbl">Safe Products</div>
+        </div>
+      </div>
+
+      <!-- MAIN GRID -->
+      <div class="dash-grid">
+
+        <!-- LEFT: Table + Analytics -->
+        <div>
+          <div class="card" style="animation-delay:.12s">
+            <div class="ch">
+              <h2 class="ct">Recently Added Products</h2>
+              <span class="ca" onclick="openModal()">+ Add New</span>
+            </div>
+
+            <div class="ftabs">
+              <button class="ftab active" onclick="setFilter('all',this)">All</button>
+              <button class="ftab" onclick="setFilter('fresh',this)">Fresh</button>
+              <button class="ftab" onclick="setFilter('soon',this)">Expiring Soon</button>
+              <button class="ftab" onclick="setFilter('expired',this)">Expired</button>
+            </div>
+
+            <div class="tsw">
+              <div class="ts">
+                <span class="ts-ico">🔍</span>
+                <input type="text" id="tsearch" placeholder="Search by name or category…" oninput="renderTable()"/>
+              </div>
+            </div>
+
+            <div class="tw">
+              <table id="ptable" style="display:none">
+                <thead>
+                  <tr>
+                    <th>Product Name</th>
+                    <th>Category</th>
+                    <th>Expiry Date</th>
+                    <th>Days Left</th>
+                    <th>Status</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="tbody"></tbody>
+              </table>
+            </div>
+
+            <div class="empty show" id="empty">
+              <span class="empty-ico">📭</span>
+              <div class="empty-t">No products yet</div>
+              <div class="empty-s">Add your first product to start tracking expiry dates.<br>All stats and charts will update automatically.</div>
+              <button class="btn-first" onclick="openModal()">+ Add Your First Product</button>
+            </div>
+          </div>
+
+          <!-- ANALYTICS -->
+          <div class="arow">
+            <div class="card" style="animation-delay:.22s">
+              <div class="ch"><h2 class="ct">Product Distribution</h2></div>
+              <div class="chart-body"><canvas id="pieC"></canvas></div>
+              <div class="leg">
+                <div class="li"><span class="ld" style="background:#62c98d"></span>Fresh</div>
+                <div class="li"><span class="ld" style="background:#f9b56d"></span>Expiring Soon</div>
+                <div class="li"><span class="ld" style="background:#e57373"></span>Expired</div>
+              </div>
+            </div>
+            <div class="card" style="animation-delay:.28s">
+              <div class="ch"><h2 class="ct">Monthly Expiry Trends</h2></div>
+              <div class="chart-body"><canvas id="barC"></canvas></div>
+              <div class="leg">
+                <div class="li"><span class="ld" style="background:#6b8cff"></span>Products Expiring</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT COLUMN -->
+        <div class="rcol">
+
+          <!-- Upcoming Expiry -->
+          <div class="card" style="animation-delay:.16s">
+            <div class="ch"><h2 class="ct">Upcoming Expiry</h2><span class="ca">View All</span></div>
+            <div class="elist" id="elist">
+              <div class="rnil">No products expiring soon.<br>Add products to see expiry alerts here.</div>
+            </div>
+          </div>
+
+          <!-- Notifications -->
+          <div class="card" style="animation-delay:.2s">
+            <div class="ch"><h2 class="ct">Notifications</h2><span class="ca" onclick="clearNotifs()">Clear</span></div>
+            <div class="nlist" id="nlist">
+              <div class="ni">
+                <div class="nid ngrn">✅</div>
+                <div><strong>All clear!</strong><span>Add products to receive alerts here</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Add Product CTA -->
+          <div class="card apc" onclick="openModal()" style="animation-delay:.24s">
+            <div class="apc-ico">➕</div>
+            <div class="apc-t">Track a New Product</div>
+            <div class="apc-s">Groceries, medicines, beauty &amp; more</div>
+            <button class="btn-apc" onclick="event.stopPropagation();openModal()">+ Add Product</button>
+          </div>
+
+        </div>
+      </div><!-- /dash-grid -->
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- =====================================================
+   JAVASCRIPT — All logic lives here, no backend needed.
+   When you're ready to add a backend, replace the
+   `products` array operations with fetch() API calls.
+===================================================== -->
+<script>
+/* ── DATA ─────────────────────────────────────────────
+   Starts empty. Products are added by the user.
+   To connect a backend later, replace with:
+   fetch('/api/products').then(r=>r.json()).then(d=>{ products=d; refreshAll(); })
+────────────────────────────────────────────────────── */
+let products    = [];   // empty on load — populated only when user adds a product
+let activeFilter = 'all';
+let nextId       = 1;
+let pieChart, barChart;
+
+/* ── UTILS ─────────────────────────────────────────── */
+const $   = id => document.getElementById(id);
+const today = () => new Date(new Date().toDateString());
+
+function daysLeft(str) {
+  return Math.round((new Date(str) - today()) / 86400000);
+}
+function statusOf(d) {
+  return d < 0 ? 'expired' : d <= 7 ? 'soon' : 'fresh';
+}
+function fmtDate(str) {
+  return new Date(str).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+}
+
+const EMOJI = {Dairy:'🥛',Bakery:'🍞',Medicines:'💊',Beauty:'🧴',Fruits:'🛒',Beverages:'🧃',Vegetables:'🧊',Other:'📦'};
+const CATCLS = {Dairy:'cd',Bakery:'cf',Medicines:'ch2',Beauty:'cb',Fruits:'cg',Beverages:'cg',Vegetables:'cd',Other:'co'};
+
+/* ── TOP DATE ─────────────────────────────────────── */
+$('topdate').textContent = new Date().toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+/* ── STAT CARDS ───────────────────────────────────── */
+function setVal(id, val) {
+  const el = $(id);
+  el.textContent = val;
+  el.classList.remove('count-anim');
+  void el.offsetWidth; // reflow to restart animation
+  el.classList.add('count-anim');
+}
+
+function refreshStats() {
+  const tot  = products.length;
+  const exp  = products.filter(p => daysLeft(p.expiry) < 0).length;
+  const soon = products.filter(p => { const d = daysLeft(p.expiry); return d >= 0 && d <= 7; }).length;
+  const safe = products.filter(p => daysLeft(p.expiry) > 7).length;
+
+  setVal('sv-total',   tot);
+  setVal('sv-soon',    soon);
+  setVal('sv-expired', exp);
+  setVal('sv-safe',    safe);
+
+  // Sidebar badges
+  $('sb-tot').textContent   = tot;
+  $('sb-exp').textContent   = exp;
+  $('sb-notif').textContent = exp + soon;
+
+  // Bell dot
+  $('nb-dot').style.display = (exp + soon) > 0 ? 'block' : 'none';
+}
+
+
+function loadUser() {
+  const userData = localStorage.getItem("user");
+
+  // DEFAULT values (this is the fix)
+  let fullName = "Guest User";
+  let firstName = "Guest";
+  let firstLetter = "G";
+
+  if (userData) {
+    try {
+      const user = JSON.parse(userData);
+      if (user.name && user.name.trim() !== "") {
+        fullName = user.name;
+        firstName = fullName.split(" ")[0];
+        firstLetter = firstName.charAt(0).toUpperCase();
+      }
+    } catch (e) {
+      console.log("Invalid user data");
+    }
+  }
+
+  const sbName = document.getElementById("sb-username");
+  const sbAvatar = document.getElementById("sb-avatar");
+  const tbName = document.getElementById("tb-name");
+  const tbAvatar = document.getElementById("tb-avatar");
+
+  if (sbName) sbName.textContent = fullName;
+  if (sbAvatar) sbAvatar.textContent = firstLetter;
+  if (tbName) tbName.textContent = firstName;
+  if (tbAvatar) tbAvatar.textContent = firstLetter;
+}
+
+
+
+/* ── TABLE ────────────────────────────────────────── */
+function renderTable() {
+  const q = (($('tsearch').value || '') + ($('gsearch').value || '')).trim().toLowerCase();
+
+  const filtered = products.filter(p => {
+    const d   = daysLeft(p.expiry);
+    const st  = statusOf(d);
+    const mf  = activeFilter === 'all' || st === activeFilter;
+    const mq  = !q || p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q) || (p.brand||'').toLowerCase().includes(q);
+    return mf && mq;
+  });
+
+  const tbl   = $('ptable');
+  const empty = $('empty');
+  const tbody = $('tbody');
+
+  // Show empty state when zero products exist at all
+  if (products.length === 0) {
+    tbl.style.display  = 'none';
+    empty.classList.add('show');
+    return;
+  }
+
+  // Products exist but filter/search returned nothing
+  if (filtered.length === 0) {
+    tbl.style.display = 'none';
+    empty.classList.add('show');
+    empty.innerHTML = `
+      <span class="empty-ico">🔍</span>
+      <div class="empty-t">No matches found</div>
+      <div class="empty-s">Try a different search term or filter.</div>`;
+    return;
+  }
+
+  // Restore default empty-state content for next time
+  empty.innerHTML = `
+    <span class="empty-ico">📭</span>
+    <div class="empty-t">No products yet</div>
+    <div class="empty-s">Add your first product to start tracking expiry dates.<br>All stats and charts will update automatically.</div>
+    <button class="btn-first" onclick="openModal()">+ Add Your First Product</button>`;
+
+  tbl.style.display = '';
+  empty.classList.remove('show');
+
+  tbody.innerHTML = filtered.map(p => {
+    const d   = daysLeft(p.expiry);
+    const st  = statusOf(d);
+    const sc  = st === 'expired' ? 'sex' : st === 'soon' ? 'sso' : 'sfr';
+    const dc  = st === 'expired' ? 'dgone' : st === 'soon' ? 'dsoon' : 'dsafe';
+    const sl  = st === 'expired' ? 'Expired' : st === 'soon' ? 'Expiring Soon' : 'Fresh';
+    const dt  = d < 0 ? `${Math.abs(d)}d ago` : d === 0 ? 'Today!' : `${d} days`;
+    return `<tr>
+      <td>
+        <div class="pc">
+          <span class="pe">${p.emoji}</span>
+          <div>
+            <div class="pn">${escHtml(p.name)}</div>
+            <div class="ps">${escHtml(p.brand || '')}</div>
+          </div>
+        </div>
+      </td>
+      <td><span class="cp ${CATCLS[p.category]||'co'}">${escHtml(p.category)}</span></td>
+      <td style="font-size:.8rem;white-space:nowrap">${fmtDate(p.expiry)}</td>
+      <td><span class="${dc}">${dt}</span></td>
+      <td><span class="sp ${sc}">${sl}</span></td>
+      <td>
+        <button class="del-btn" title="Remove" onclick="removeProduct(${p.id})">🗑</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ── FILTER TABS ──────────────────────────────────── */
+function setFilter(f, btn) {
+  activeFilter = f;
+  document.querySelectorAll('.ftab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTable();
+}
+
+/* ── REMOVE PRODUCT ───────────────────────────────── */
+function removeProduct(id) {
+  products = products.filter(p => p.id !== id);
+  /* BACKEND: fetch('/api/products/'+id, {method:'DELETE'}) */
+  refreshAll();
+  showToast('🗑️', 'Product removed');
+}
+
+/* ── UPCOMING EXPIRY ──────────────────────────────── */
+function renderUpcoming() {
+  const el   = $('elist');
+  const up   = products
+    .filter(p => { const d = daysLeft(p.expiry); return d >= 0 && d <= 14; })
+    .sort((a, b) => daysLeft(a.expiry) - daysLeft(b.expiry))
+    .slice(0, 6);
+
+  if (!up.length) {
+    el.innerHTML = `<div class="rnil">${products.length === 0 ? 'Add products to see expiry alerts here.' : '🎉 Nothing expiring in the next 14 days!'}</div>`;
+    return;
+  }
+  el.innerHTML = up.map(p => {
+    const d   = daysLeft(p.expiry);
+    const cls = d <= 2 ? 'ei-urg' : d <= 7 ? 'ei-soo' : 'ei-ok';
+    const warn = d <= 2 ? '🔴 Expires very soon!' : d <= 7 ? '🟡 Check this week' : '🟢 Coming up';
+    const dt   = d === 0 ? 'Today!' : d === 1 ? 'Tomorrow' : `${d}d left`;
+    return `<div class="ei ${cls}">
+      <span class="ei-ico">${p.emoji}</span>
+      <div class="ei-inf">
+        <div class="ei-name">${escHtml(p.name)}</div>
+        <div class="ei-warn">${warn}</div>
+      </div>
+      <div class="ei-date">${dt}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ── NOTIFICATIONS ────────────────────────────────── */
+function renderNotifications() {
+  const expired = products.filter(p => daysLeft(p.expiry) < 0);
+  const urgent  = products.filter(p => { const d = daysLeft(p.expiry); return d >= 0 && d <= 2; });
+  const soon    = products.filter(p => { const d = daysLeft(p.expiry); return d > 2 && d <= 7; });
+
+  const items = [];
+  expired.forEach(p => items.push({ ico:'🚫', cls:'nred', t:`${p.name} has expired`, s:'Remove or replace it soon' }));
+  urgent.forEach(p  => items.push({ ico:'⏰', cls:'nora', t:`${p.name} expires very soon`, s: daysLeft(p.expiry) === 0 ? 'Expires today!' : `Expires in ${daysLeft(p.expiry)} day(s)` }));
+  soon.forEach(p    => items.push({ ico:'📅', cls:'nblu', t:`${p.name} expiring this week`, s:`Expires: ${fmtDate(p.expiry)}` }));
+
+  const nl = $('nlist');
+  if (!items.length) {
+    nl.innerHTML = `<div class="ni"><div class="nid ngrn">✅</div><div><strong>All clear!</strong><span>${products.length === 0 ? 'Add products to receive alerts' : 'No urgent alerts right now'}</span></div></div>`;
+    return;
+  }
+  nl.innerHTML = items.slice(0, 5).map(n =>
+    `<div class="ni"><div class="nid ${n.cls}">${n.ico}</div><div><strong>${escHtml(n.t)}</strong><span>${escHtml(n.s)}</span></div></div>`
+  ).join('');
+}
+
+function clearNotifs() {
+  $('nlist').innerHTML = `<div class="ni"><div class="nid ngrn">✅</div><div><strong>Cleared!</strong><span>No notifications</span></div></div>`;
+}
+
+/* ── CHARTS ───────────────────────────────────────── */
+function initCharts() {
+  pieChart = new Chart($('pieC').getContext('2d'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Fresh', 'Expiring Soon', 'Expired'],
+      datasets: [{ data: [0, 0, 0], backgroundColor: ['#62c98d','#f9b56d','#e57373'], borderWidth: 0, hoverOffset: 6 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '64%',
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: c => ` ${c.label}: ${c.raw}` } }
+      }
+    }
+  });
+
+  barChart = new Chart($('barC').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+      datasets: [{ label: 'Expiring', data: Array(12).fill(0), backgroundColor: 'rgba(107,140,255,.72)', borderRadius: 6, borderSkipped: false }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { stepSize: 1, font: { family:'Nunito', size:11 } }, grid: { color: 'rgba(0,0,0,0.05)' } },
+        x: { ticks: { font: { family:'Nunito', size:11 } }, grid: { display: false } }
+      }
+    }
+  });
+}
+
+function refreshCharts() {
+  const safe    = products.filter(p => daysLeft(p.expiry) > 7).length;
+  const soon    = products.filter(p => { const d = daysLeft(p.expiry); return d >= 0 && d <= 7; }).length;
+  const expired = products.filter(p => daysLeft(p.expiry) < 0).length;
+
+  pieChart.data.datasets[0].data = [safe, soon, expired];
+  pieChart.update('active');
+
+  const monthly = Array(12).fill(0);
+  products.forEach(p => { monthly[new Date(p.expiry).getMonth()]++; });
+  barChart.data.datasets[0].data = monthly;
+  barChart.update('active');
+}
+
+/* ── MODAL ────────────────────────────────────────── */
+function openModal() {
+  // Set default expiry date to 30 days from today
+  const def = new Date(); def.setDate(def.getDate() + 30);
+  $('f-exp').value = def.toISOString().split('T')[0];
+  $('overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => $('f-name').focus(), 100);
+}
+function closeModal() {
+  $('overlay').classList.remove('open');
+  document.body.style.overflow = '';
+  resetForm();
+}
+function closeOverlayClick(e) { if (e.target === $('overlay')) closeModal(); }
+function resetForm() {
+  ['f-name','f-brand','f-notes'].forEach(id => $(id).value = '');
+  $('f-qty').value  = '1';
+  $('f-cat').value  = '';
+  $('f-exp').value  = '';
+  ['e-name','e-cat','e-exp'].forEach(id => { $(id).classList.remove('show'); });
+  ['f-name','f-cat','f-exp'].forEach(id => { $(id).classList.remove('err'); });
+}
+
+function saveProduct() {
+  const name   = $('f-name').value.trim();
+  const cat    = $('f-cat').value;
+  const expiry = $('f-exp').value;
+  const qty    = Math.max(1, parseInt($('f-qty').value) || 1);
+  const brand  = $('f-brand').value.trim();
+  const notes  = $('f-notes').value.trim();
+
+  // Validation
+  let ok = true;
+  if (!name)   { showErr('f-name','e-name'); ok = false; }  else clearErr('f-name','e-name');
+  if (!cat)    { showErr('f-cat','e-cat');   ok = false; }  else clearErr('f-cat','e-cat');
+  if (!expiry) { showErr('f-exp','e-exp');   ok = false; }  else clearErr('f-exp','e-exp');
+  if (!ok) return;
+
+  // Build product object
+  const prod = {
+    id:     nextId++,
+    name, brand, category: cat,
+    emoji:  EMOJI[cat] || '📦',
+    expiry, qty, notes,
+    addedAt: new Date().toISOString()
+  };
+
+  /*
+    ── BACKEND CONNECTION POINT ──
+    When you have a backend, replace the line below with:
+    fetch('/api/products', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(prod)
+    }).then(r => r.json()).then(saved => {
+      products.unshift(saved);
+      refreshAll();
+      closeModal();
+      showToast('✅', `${saved.name} added!`);
+    });
+    return;
+  */
+
+  // Add to in-memory array (frontend only, no backend yet)
+  products.unshift(prod);
+  refreshAll();
+  closeModal();
+  showToast('✅', `${prod.name} added successfully!`);
+}
+
+function showErr(inputId, errId) {
+  $(inputId).classList.add('err');
+  $(errId).classList.add('show');
+}
+function clearErr(inputId, errId) {
+  $(inputId).classList.remove('err');
+  $(errId).classList.remove('show');
+}
+
+/* ── TOAST ────────────────────────────────────────── */
+let toastTimer;
+function showToast(ico, msg) {
+  $('toast-ico').textContent = ico;
+  $('toast-msg').textContent = msg;
+  const t = $('toast');
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+/* ── SIDEBAR MOBILE ───────────────────────────────── */
+function toggleSB() { $('sidebar').classList.toggle('open'); $('sb-ov').classList.toggle('show'); }
+function closeSB()  { $('sidebar').classList.remove('open'); $('sb-ov').classList.remove('show'); }
+function setNav(el) {
+  document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+  if (window.innerWidth <= 768) closeSB();
+}
+
+/* ── REFRESH ALL ──────────────────────────────────── */
+function refreshAll() {
+  refreshStats();
+  renderTable();
+  renderUpcoming();
+  renderNotifications();
+  refreshCharts();
+}
+
+/* ── KEYBOARD ─────────────────────────────────────── */
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+/* ── INIT ─────────────────────────────────────────── */
+window.addEventListener('DOMContentLoaded', () => {
+  initCharts();
+  loadUser();
+  refreshAll(); // renders with zero products — shows empty states
+});
+</script>
+</body>
+</html>
